@@ -8,7 +8,7 @@ use App\Http\Controllers\Api\EcoleController;
 use App\Http\Controllers\Api\StagiaireController as ApiStagiaireController;
 use App\Http\Controllers\Api\StagiaireController;
 use Illuminate\Support\Facades\Route;
-
+//
 // Public routes
 Route::post('register', [ApiAuthController::class, 'register']);
 Route::post('login', [ApiAuthController::class, 'login']);
