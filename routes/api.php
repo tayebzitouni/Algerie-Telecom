@@ -30,7 +30,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
     Route::get('stagiaires', [HrController::class, 'stagiaires']);
 
-Route::post('stagiaires', [HrController::class, 'storeStagiaires']);
+Route::post('stagiaires', [HrController::class, 'store']);
 
 Route::apiResource('emplois', EmploiController::class)
     ->middleware('auth:sanctum','role:hr');

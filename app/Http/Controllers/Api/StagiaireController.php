@@ -82,59 +82,73 @@ class StagiaireController extends Controller
         return response()->json($result);
     }
 
-    public function store(Request $request)
+public function store(Request $request)
 {
-    $request->validate([
-        'stagiaires' => 'required|array|min:1',
-        'stagiaires.*.first_name' => 'required|string',
-        'stagiaires.*.last_name' => 'required|string',
-        'stagiaires.*.email' => 'nullable|email',
-        'stagiaires.*.phone' => 'nullable|string',
-        'stagiaires.*.city' => 'nullable|string',
-        'ecole_id' => 'required|exists:ecoles,id',
-        'emploi_id' => 'nullable|exists:emplois,id',
-        // files are optional here, validated manually below
-    ]);
+    try {
+        // Validate basic fields
+        $request->validate([
+            'stagiaires' => 'required|array|min:1',
+            'stagiaires.*.first_name' => 'required|string',
+            'stagiaires.*.last_name' => 'required|string',
+            'stagiaires.*.email' => 'nullable|email',
+            'stagiaires.*.phone' => 'nullable|string',
+            'stagiaires.*.city' => 'nullable|string',
+            'ecole_id' => 'required|exists:ecoles,id',
+            'emploi_id' => 'nullable|exists:emplois,id',
+            // files will be validated manually
+        ]);
 
-    $group = Group::create([
-        'name' => 'Group for ' . now()->format('Y-m-d H:i:s'),
-        'theme_id' => null,
-        'ecole_id' => $request->ecole_id,
-        'emploi_id' => $request->emploi_id ?? null,
-    ]);
+        // Create the group
+        $group = Group::create([
+            'name' => 'Group for ' . now()->format('Y-m-d H:i:s'),
+            'theme_id' => null,
+            'ecole_id' => $request->ecole_id,
+            'emploi_id' => $request->emploi_id ?? null,
+        ]);
 
-    $createdStagiaires = [];
+        $createdStagiaires = [];
 
-    foreach ($request->stagiaires as $index => $s) {
-        $data = [
-            'first_name' => $s['first_name'],
-            'last_name' => $s['last_name'],
-            'email' => $s['email'] ?? null,
-            'phone' => $s['phone'] ?? null,
-            'city' => $s['city'] ?? null,
-            'group_id' => $group->id,
-            'status' => 'pending',
-        ];
+        foreach ($request->stagiaires as $index => $s) {
+            $data = [
+                'first_name' => $s['first_name'],
+                'last_name' => $s['last_name'],
+                'email' => $s['email'] ?? null,
+                'phone' => $s['phone'] ?? null,
+                'city' => $s['city'] ?? null,
+                'group_id' => $group->id,
+                'status' => 'pending',
+            ];
 
-        // Handle file uploads by index
-        if ($request->hasFile("cv.$index")) {
-            $data['cv_path'] = $request->file("cv.$index")->store('documents/cv', 'public');
+            // Handle files arrays (cv, student_card, cover_letter)
+            $files = ['cv', 'student_card', 'cover_letter'];
+            foreach ($files as $file) {
+                if ($request->hasFile($file) && isset($request->$file[$index])) {
+                    $data[$file . '_path'] = $request->file($file)[$index]->store("documents/$file", 'public');
+                }
+            }
+
+            $stagiaire = Stagiaire::create($data);
+            $createdStagiaires[] = $stagiaire;
         }
-        if ($request->hasFile("student_card.$index")) {
-            $data['student_card_path'] = $request->file("student_card.$index")->store('documents/student_cards', 'public');
-        }
-        if ($request->hasFile("cover_letter.$index")) {
-            $data['cover_letter_path'] = $request->file("cover_letter.$index")->store('documents/cover_letters', 'public');
-        }
 
-        $stagiaire = Stagiaire::create($data);
-        $createdStagiaires[] = $stagiaire;
+        return response()->json([
+            'success' => true,
+            'group' => $group,
+            'stagiaires' => $createdStagiaires,
+        ], 201);
+
+    } catch (\Illuminate\Validation\ValidationException $e) {
+        return response()->json([
+            'success' => false,
+            'errors' => $e->errors(),
+        ], 422);
+    } catch (\Exception $e) {
+        return response()->json([
+            'success' => false,
+            'error' => $e->getMessage(),
+            'trace' => $e->getTraceAsString(),
+        ], 500);
     }
-
-    return response()->json([
-        'group' => $group,
-        'stagiaires' => $createdStagiaires,
-    ]);
 }
 
 
