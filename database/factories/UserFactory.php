@@ -7,13 +7,35 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 use App\Models\User;
 
+
+/**
+ * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\User>
+ */
 class UserFactory extends Factory
 {
-    // Link this factory to the User model
+    /**
+     * The name of the factory's corresponding model.
+     */
     protected $model = User::class;
 
     /**
+     * @var \Faker\Generator
+     */
+    protected $faker;
+
+    /**
+     * Constructor - initialize Faker manually for Laravel 8.
+     */
+    public function __construct()
+    {
+        parent::__construct();
+        $this->faker = \Faker\Factory::create();
+    }
+
+    /**
      * Define the model's default state.
+     *
+     * @return array<string, mixed>
      */
     public function definition(): array
     {

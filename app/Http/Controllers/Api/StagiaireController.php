@@ -83,60 +83,60 @@ class StagiaireController extends Controller
     }
 
     public function store(Request $request)
-    {
-        $request->validate([
-            'stagiaires' => 'required|array|min:1',
-            'stagiaires.*.first_name' => 'required|string',
-            'stagiaires.*.last_name' => 'required|string',
-            'stagiaires.*.email' => 'nullable|email',
-            'stagiaires.*.phone' => 'nullable|string',
-            'stagiaires.*.city' => 'nullable|string',
-            'stagiaires.*.cv' => 'nullable|file|mimes:pdf,doc,docx|max:2048',
-            'stagiaires.*.student_card' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:2048',
-            'stagiaires.*.cover_letter' => 'nullable|file|mimes:pdf,doc,docx|max:2048',
-            'ecole_id' => 'required|exists:ecoles,id',
-            'emploi_id' => 'nullable|exists:emplois,id',
-        ]);
+{
+    $request->validate([
+        'stagiaires' => 'required|array|min:1',
+        'stagiaires.*.first_name' => 'required|string',
+        'stagiaires.*.last_name' => 'required|string',
+        'stagiaires.*.email' => 'nullable|email',
+        'stagiaires.*.phone' => 'nullable|string',
+        'stagiaires.*.city' => 'nullable|string',
+        'ecole_id' => 'required|exists:ecoles,id',
+        'emploi_id' => 'nullable|exists:emplois,id',
+        // files are optional here, validated manually below
+    ]);
 
-        $group = Group::create([
-            'name' => 'Group for ' . now()->format('Y-m-d H:i:s'),
-            'theme_id' => null,
-            'ecole_id' => $request->ecole_id,
-            'emploi_id' => $request->emploi_id ?? null,
-        ]);
+    $group = Group::create([
+        'name' => 'Group for ' . now()->format('Y-m-d H:i:s'),
+        'theme_id' => null,
+        'ecole_id' => $request->ecole_id,
+        'emploi_id' => $request->emploi_id ?? null,
+    ]);
 
-        $createdStagiaires = [];
+    $createdStagiaires = [];
 
-        foreach ($request->stagiaires as $s) {
-            $data = [
-                'first_name' => $s['first_name'],
-                'last_name' => $s['last_name'],
-                'email' => $s['email'] ?? null,
-                'phone' => $s['phone'] ?? null,
-                'city' => $s['city'] ?? null,
-                'group_id' => $group->id,
-                'status' => 'pending',
-            ];
+    foreach ($request->stagiaires as $index => $s) {
+        $data = [
+            'first_name' => $s['first_name'],
+            'last_name' => $s['last_name'],
+            'email' => $s['email'] ?? null,
+            'phone' => $s['phone'] ?? null,
+            'city' => $s['city'] ?? null,
+            'group_id' => $group->id,
+            'status' => 'pending',
+        ];
 
-            if (isset($s['cv'])) {
-                $data['cv_path'] = $s['cv']->store('documents/cv', 'public');
-            }
-            if (isset($s['student_card'])) {
-                $data['student_card_path'] = $s['student_card']->store('documents/student_cards', 'public');
-            }
-            if (isset($s['cover_letter'])) {
-                $data['cover_letter_path'] = $s['cover_letter']->store('documents/cover_letters', 'public');
-            }
-
-            $stagiaire = Stagiaire::create($data);
-            $createdStagiaires[] = $stagiaire;
+        // Handle file uploads by index
+        if ($request->hasFile("cv.$index")) {
+            $data['cv_path'] = $request->file("cv.$index")->store('documents/cv', 'public');
+        }
+        if ($request->hasFile("student_card.$index")) {
+            $data['student_card_path'] = $request->file("student_card.$index")->store('documents/student_cards', 'public');
+        }
+        if ($request->hasFile("cover_letter.$index")) {
+            $data['cover_letter_path'] = $request->file("cover_letter.$index")->store('documents/cover_letters', 'public');
         }
 
-        return response()->json([
-            'group' => $group,
-            'stagiaires' => $createdStagiaires,
-        ]);
+        $stagiaire = Stagiaire::create($data);
+        $createdStagiaires[] = $stagiaire;
     }
+
+    return response()->json([
+        'group' => $group,
+        'stagiaires' => $createdStagiaires,
+    ]);
+}
+
 
     public function update(Request $request, $id)
     {
