@@ -6,6 +6,9 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Stagiaire;
 use App\Models\Group;
+use Illuminate\Support\Facades\Storage;
+
+
 
 class StagiaireController extends Controller
 {
@@ -83,82 +86,89 @@ class StagiaireController extends Controller
     }
 
 public function store(Request $request)
-{
-    try {
+    {
+        try {
+            // Validate the request
+            $request->validate([
+                'stagiaires' => 'required|array|min:1',
+                'stagiaires.*.first_name' => 'required|string',
+                'stagiaires.*.last_name' => 'required|string',
+                'stagiaires.*.email' => 'nullable|email',
+                'stagiaires.*.phone' => 'nullable|string',
+                'stagiaires.*.city' => 'nullable|string',
+                'ecole_id' => 'required|exists:ecoles,id',
+                'emploi_id' => 'nullable|exists:emplois,id',
+                // files are handled manually below
+            ]);
 
-        $request->validate([
-            'stagiaires' => 'required|array|min:1',
-            'stagiaires.*.first_name' => 'required|string',
-            'stagiaires.*.last_name' => 'required|string',
-            'stagiaires.*.email' => 'nullable|email',
-            'stagiaires.*.phone' => 'nullable|string',
-            'stagiaires.*.city' => 'nullable|string',
-            'ecole_id' => 'required|exists:ecoles,id',
-            'emploi_id' => 'nullable|exists:emplois,id',
-        ]);
+            // Create the group
+            $group = Group::create([
+                'name' => 'Group ' . now()->format('Y-m-d H:i:s'),
+                'theme_id' => null,
+                'ecole_id' => $request->ecole_id,
+                'emploi_id' => $request->emploi_id ?? null,
+            ]);
 
-        $group = Group::create([
-            'name' => 'Group ' . now()->format('Y-m-d H:i:s'),
-            'theme_id' => null,
-            'ecole_id' => $request->ecole_id,
-            'emploi_id' => $request->emploi_id ?? null,
-        ]);
+            $createdStagiaires = [];
 
-        $createdStagiaires = [];
+            foreach ($request->stagiaires as $index => $s) {
 
-        foreach ($request->stagiaires as $index => $s) {
+                $data = [
+                    'first_name' => $s['first_name'],
+                    'last_name' => $s['last_name'],
+                    'email' => $s['email'] ?? null,
+                    'phone' => $s['phone'] ?? null,
+                    'city' => $s['city'] ?? null,
+                    'group_id' => $group->id,
+                    'status' => 'pending',
+                ];
 
-            $data = [
-                'first_name' => $s['first_name'],
-                'last_name' => $s['last_name'],
-                'email' => $s['email'] ?? null,
-                'phone' => $s['phone'] ?? null,
-                'city' => $s['city'] ?? null,
-                'group_id' => $group->id,
-                'status' => 'pending',
-            ];
+                $files = ['cv', 'student_card', 'cover_letter'];
 
-            $files = ['cv', 'student_card', 'cover_letter'];
+             
 
-            foreach ($files as $file) {
-                if ($request->hasFile("$file.$index")) {
+foreach ($files as $file) {
+    if ($request->hasFile("$file.$index")) {
+        $uploaded = $request->file("$file.$index");
 
-                    $uploaded = $request->file("$file.$index");
+        // Store the file on S3
+        $path = $uploaded->store("documents/$file", 's3');
 
-                    // Store file
-                    $relativePath = $uploaded->store("documents/$file", 'public');
+        $data[$file . '_path'] = $path;
 
-                    // Convert to full URL
-                    $fullUrl = url('storage/' . $relativePath);
-
-                    // Save FULL URL directly to DB
-                    $data[$file . '_path'] = $fullUrl;
-                }
-            }
-
-            $stagiaire = Stagiaire::create($data);
-            $createdStagiaires[] = $stagiaire;
-        }
-
-        return response()->json([
-            'success' => true,
-            'group' => $group,
-            'stagiaires' => $createdStagiaires,
-        ], 201);
-
-    } catch (\Illuminate\Validation\ValidationException $e) {
-        return response()->json([
-            'success' => false,
-            'errors' => $e->errors(),
-        ], 422);
-    } catch (\Exception $e) {
-        return response()->json([
-            'success' => false,
-            'error' => $e->getMessage(),
-            'trace' => $e->getTraceAsString(),
-        ], 500);
+        // Generate full URL manually (works for Railway S3)
+        $data[$file . '_url'] = env('AWS_URL') . '/' . $path;
     }
 }
+
+
+                // Create the stagiaire
+                $stagiaire = Stagiaire::create($data);
+
+                $createdStagiaires[] = $stagiaire;
+            }
+
+            return response()->json([
+                'success' => true,
+                'group' => $group,
+                'stagiaires' => $createdStagiaires,
+            ], 201);
+
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json([
+                'success' => false,
+                'errors' => $e->errors(),
+            ], 422);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ], 500);
+        }
+    }
+
+
 
 
 

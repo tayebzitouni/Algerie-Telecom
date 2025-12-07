@@ -6,6 +6,7 @@ use App\Http\Controllers\Api\EmploiController;
 use App\Http\Controllers\Api\GroupController;
 use App\Http\Controllers\Api\EcoleController;
 use App\Http\Controllers\Api\StagiaireController as ApiStagiaireController;
+use App\Http\Controllers\Api\StagiaireController;
 use Illuminate\Support\Facades\Route;
 
 // Public routes
@@ -23,7 +24,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('stagiaires', [HrController::class, 'stagiaires']);
       
         Route::get('stagiaires/{id}', [HrController::class, 'stagiere']);
-        Route::post('stagiaires', [ApiStagiaireController::class, 'store']);
+        Route::post('stagiaires', [StagiaireController::class, 'store']);
 
         Route::post('stagiaires/{id}/status', [HrController::class, 'changeStatus']);
         Route::post('stagiaires/{id}/assign-emploi', [HrController::class, 'assignStagiaire']);
