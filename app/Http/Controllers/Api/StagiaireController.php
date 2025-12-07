@@ -5,166 +5,195 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Stagiaire;
-
+use App\Models\Group;
 
 class StagiaireController extends Controller
 {
-  public function index()
-{
-    $groups = \App\Models\Group::with(['ecole', 'emploi', 'stagiaires.statusHistory'])->get();
+    public function index()
+    {
+        $groups = Group::with(['ecole', 'emploi', 'stagiaires.statusHistory'])->get();
 
-    // Transform the data
-    $result = $groups->map(function ($group) {
-        return [
+        $result = $groups->map(function ($group) {
+            return [
+                'group' => [
+                    'id' => $group->id,
+                    'name' => $group->name,
+                    'program' => $group->program,
+                    'theme_id' => $group->theme_id,
+                    'ecole' => $group->ecole,
+                    'emploi' => $group->emploi,
+                    'created_at' => $group->created_at,
+                    'updated_at' => $group->updated_at,
+                ],
+                'stagiaires' => $group->stagiaires->map(function ($stagiaire) {
+                    return [
+                        'id' => $stagiaire->id,
+                        'first_name' => $stagiaire->first_name,
+                        'last_name' => $stagiaire->last_name,
+                        'email' => $stagiaire->email,
+                        'phone' => $stagiaire->phone,
+                        'city' => $stagiaire->city,
+                        'status' => $stagiaire->status,
+                        'cv_url' => $stagiaire->cv_path ? asset('storage/' . $stagiaire->cv_path) : null,
+                        'student_card_url' => $stagiaire->student_card_path ? asset('storage/' . $stagiaire->student_card_path) : null,
+                        'cover_letter_url' => $stagiaire->cover_letter_path ? asset('storage/' . $stagiaire->cover_letter_path) : null,
+                        'created_at' => $stagiaire->created_at,
+                        'updated_at' => $stagiaire->updated_at,
+                    ];
+                }),
+            ];
+        });
+
+        return response()->json($result);
+    }
+
+    public function show($id)
+    {
+        $stagiaire = Stagiaire::with(['group.ecole', 'group.emploi', 'statusHistory'])->findOrFail($id);
+
+        $result = [
             'group' => [
-                'id' => $group->id,
-                'name' => $group->name,
-                'theme_id' => $group->theme_id,
-                'ecole' => $group->ecole,    // ecole info
-                'emploi' => $group->emploi,  // emploi info
-                'created_at' => $group->created_at,
-                'updated_at' => $group->updated_at,
+                'id' => $stagiaire->group->id,
+                'name' => $stagiaire->group->name,
+                'program' => $stagiaire->group->program,
+                'theme_id' => $stagiaire->group->theme_id,
+                'ecole' => $stagiaire->group->ecole,
+                'emploi' => $stagiaire->group->emploi,
+                'created_at' => $stagiaire->group->created_at,
+                'updated_at' => $stagiaire->group->updated_at,
             ],
-            'stagiaires' => $group->stagiaires->map(function ($stagiaire) {
-                return [
-                    'id' => $stagiaire->id,
-                    'name' => $stagiaire->name,
-                    'email' => $stagiaire->email,
-                    'phone' => $stagiaire->phone,
-                    'status' => $stagiaire->status,
-                    'created_at' => $stagiaire->created_at,
-                    'updated_at' => $stagiaire->updated_at,
-                ];
-            }),
+            'stagiaire' => [
+                'id' => $stagiaire->id,
+                'first_name' => $stagiaire->first_name,
+                'last_name' => $stagiaire->last_name,
+                'email' => $stagiaire->email,
+                'phone' => $stagiaire->phone,
+                'city' => $stagiaire->city,
+                'status' => $stagiaire->status,
+                'cv_url' => $stagiaire->cv_path ? asset('storage/' . $stagiaire->cv_path) : null,
+                'student_card_url' => $stagiaire->student_card_path ? asset('storage/' . $stagiaire->student_card_path) : null,
+                'cover_letter_url' => $stagiaire->cover_letter_path ? asset('storage/' . $stagiaire->cover_letter_path) : null,
+                'created_at' => $stagiaire->created_at,
+                'updated_at' => $stagiaire->updated_at,
+                'statusHistory' => $stagiaire->statusHistory,
+            ]
         ];
-    });
 
-    return response()->json($result);
-}
+        return response()->json($result);
+    }
 
+    public function store(Request $request)
+    {
+        $request->validate([
+            'stagiaires' => 'required|array|min:1',
+            'stagiaires.*.first_name' => 'required|string',
+            'stagiaires.*.last_name' => 'required|string',
+            'stagiaires.*.email' => 'nullable|email',
+            'stagiaires.*.phone' => 'nullable|string',
+            'stagiaires.*.city' => 'nullable|string',
+            'stagiaires.*.cv' => 'nullable|file|mimes:pdf,doc,docx|max:2048',
+            'stagiaires.*.student_card' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:2048',
+            'stagiaires.*.cover_letter' => 'nullable|file|mimes:pdf,doc,docx|max:2048',
+            'ecole_id' => 'required|exists:ecoles,id',
+            'emploi_id' => 'nullable|exists:emplois,id',
+        ]);
 
-
-   public function store(Request $request)
-{
-    $request->validate([
-        'stagiaires' => 'required|array|min:1',
-        'stagiaires.*.name' => 'required|string',
-        'stagiaires.*.email' => 'nullable|email',
-        'stagiaires.*.phone' => 'nullable|string',
-        'ecole_id' => 'required|exists:ecoles,id',
-        'emploi_id' => 'nullable|exists:emplois,id'
-    ]);
-
-    $group = \App\Models\Group::create([
-        'name' => 'Group for '.now()->format('Y-m-d H:i:s'),
-        'theme_id' => null,
-        'ecole_id' => $request->ecole_id,
-        'emploi_id' => $request->emploi_id ?? null
-    ]);
-
-    $createdStagiaires = [];
-
-    foreach ($request->stagiaires as $s) {
-        $stagiaire = \App\Models\Stagiaire::create([
-            'name' => $s['name'],
-            'email' => $s['email'] ?? null,
-            'phone' => $s['phone'] ?? null,
+        $group = Group::create([
+            'name' => 'Group for ' . now()->format('Y-m-d H:i:s'),
+            'theme_id' => null,
             'ecole_id' => $request->ecole_id,
             'emploi_id' => $request->emploi_id ?? null,
-            'group_id' => $group->id,
-            'status' => 'pending'
         ]);
-        $createdStagiaires[] = $stagiaire;
+
+        $createdStagiaires = [];
+
+        foreach ($request->stagiaires as $s) {
+            $data = [
+                'first_name' => $s['first_name'],
+                'last_name' => $s['last_name'],
+                'email' => $s['email'] ?? null,
+                'phone' => $s['phone'] ?? null,
+                'city' => $s['city'] ?? null,
+                'group_id' => $group->id,
+                'status' => 'pending',
+            ];
+
+            if (isset($s['cv'])) {
+                $data['cv_path'] = $s['cv']->store('documents/cv', 'public');
+            }
+            if (isset($s['student_card'])) {
+                $data['student_card_path'] = $s['student_card']->store('documents/student_cards', 'public');
+            }
+            if (isset($s['cover_letter'])) {
+                $data['cover_letter_path'] = $s['cover_letter']->store('documents/cover_letters', 'public');
+            }
+
+            $stagiaire = Stagiaire::create($data);
+            $createdStagiaires[] = $stagiaire;
+        }
+
+        return response()->json([
+            'group' => $group,
+            'stagiaires' => $createdStagiaires,
+        ]);
     }
-
-    return response()->json([
-        'group' => $group,
-        'stagiaires' => $createdStagiaires
-    ]);
-}
-
-
-
-  public function show($id)
-{
-    $stagiaire = \App\Models\Stagiaire::with(['group.ecole', 'group.emploi', 'statusHistory'])->findOrFail($id);
-
-    $result = [
-        'group' => [
-            'id' => $stagiaire->group->id,
-            'name' => $stagiaire->group->name,
-            'theme_id' => $stagiaire->group->theme_id,
-            'ecole' => $stagiaire->group->ecole,
-            'emploi' => $stagiaire->group->emploi,
-            'created_at' => $stagiaire->group->created_at,
-            'updated_at' => $stagiaire->group->updated_at,
-        ],
-        'stagiaire' => [
-            'id' => $stagiaire->id,
-            'name' => $stagiaire->name,
-            'email' => $stagiaire->email,
-            'phone' => $stagiaire->phone,
-            'status' => $stagiaire->status,
-            'created_at' => $stagiaire->created_at,
-            'updated_at' => $stagiaire->updated_at,
-            'statusHistory' => $stagiaire->statusHistory,
-        ]
-    ];
-
-    return response()->json($result);
-}
-
 
     public function update(Request $request, $id)
-{
-    $stagiaire = \App\Models\Stagiaire::with('group')->findOrFail($id);
-    $group = $stagiaire->group;
+    {
+        $stagiaire = Stagiaire::with('group')->findOrFail($id);
+        $group = $stagiaire->group;
 
-    // Validate request
-    $request->validate([
-        'name' => 'sometimes|string|max:255',
-        'email' => 'sometimes|email|unique:stagiaires,email,'.$stagiaire->id,
-        'phone' => 'sometimes|string|max:20',
-        'status' => 'sometimes|in:pending,approved,refused',
-        'group.name' => 'sometimes|string|max:255',
-        'group.theme_id' => 'sometimes|nullable|exists:themes,id',
-        'group.ecole_id' => 'sometimes|exists:ecoles,id',
-        'group.emploi_id' => 'sometimes|nullable|exists:emplois,id',
-    ]);
+        $request->validate([
+            'first_name' => 'sometimes|string|max:255',
+            'last_name' => 'sometimes|string|max:255',
+            'email' => 'sometimes|email|unique:stagiaires,email,' . $stagiaire->id,
+            'phone' => 'sometimes|string|max:20',
+            'city' => 'sometimes|string|max:255',
+            'status' => 'sometimes|in:pending,approved,refused',
+            'cv' => 'nullable|file|mimes:pdf,doc,docx|max:2048',
+            'student_card' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:2048',
+            'cover_letter' => 'nullable|file|mimes:pdf,doc,docx|max:2048',
+            'group.name' => 'sometimes|string|max:255',
+            'group.theme_id' => 'sometimes|nullable|exists:themes,id',
+            'group.ecole_id' => 'sometimes|exists:ecoles,id',
+            'group.emploi_id' => 'sometimes|nullable|exists:emplois,id',
+        ]);
 
-    // Update stagiaire fields
-    $stagiaire->update($request->only(['name', 'email', 'phone', 'status']));
+        $stagiaireData = $request->only(['first_name', 'last_name', 'email', 'phone', 'city', 'status']);
 
-    // Update group fields if provided
-    if ($request->has('group') && $group) {
-        $groupData = $request->input('group');
-        $group->update($groupData);
+        if ($request->hasFile('cv')) {
+            $stagiaireData['cv_path'] = $request->file('cv')->store('documents/cv', 'public');
+        }
+        if ($request->hasFile('student_card')) {
+            $stagiaireData['student_card_path'] = $request->file('student_card')->store('documents/student_cards', 'public');
+        }
+        if ($request->hasFile('cover_letter')) {
+            $stagiaireData['cover_letter_path'] = $request->file('cover_letter')->store('documents/cover_letters', 'public');
+        }
+
+        $stagiaire->update($stagiaireData);
+
+        if ($request->has('group') && $group) {
+            $group->update($request->input('group'));
+        }
+
+        return response()->json([
+            'stagiaire' => $stagiaire,
+            'group' => $group,
+        ]);
     }
 
-    return response()->json([
-        'stagiaire' => $stagiaire,
-        'group' => $group
-    ]);
-}
+    public function destroy($id)
+    {
+        $stagiaire = Stagiaire::findOrFail($id);
+        $group = $stagiaire->group;
 
+        $stagiaire->delete();
 
-   public function destroy($id)
-{
-    $stagiaire = \App\Models\Stagiaire::findOrFail($id);
-    $group = $stagiaire->group;
+        if ($group && $group->stagiaires()->count() === 0) {
+            $group->delete();
+        }
 
-    // Delete stagiaire
-    $stagiaire->delete();
-
-    // If the group has no other stagiaires, delete it too
-    if ($group && $group->stagiaires()->count() === 0) {
-        $group->delete();
+        return response()->json(['message' => 'Stagiaire deleted successfully']);
     }
-
-    return response()->json(['message' => 'Stagiaire deleted successfully']);
-}
-
-
-  
-   
 }

@@ -15,6 +15,9 @@ return new class extends Migration
        Schema::create('groups', function (Blueprint $table) {
         $table->id();
         $table->string('name');
+                           $table->string('program')->nullable();
+ // <-- Added city field
+
 $table->unsignedBigInteger('theme_id')->nullable();
       $table->unsignedBigInteger('emploi_id')->nullable();
         $table->unsignedBigInteger('ecole_id');

@@ -7,12 +7,19 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class Stagiaire extends Model
 {
+    use HasFactory;
+
     protected $fillable = [
-        'name',
+        'first_name',
+        'last_name',
         'email',
         'phone',
+        'city',
         'group_id',
-        'status'
+        'status',
+        'cv_path',
+        'student_card_path',
+        'cover_letter_path'
     ];
 
     protected static function booted()
@@ -34,19 +41,13 @@ class Stagiaire extends Model
         });
     }
 
-    
-
     public function group()
     {
         return $this->belongsTo(Group::class);
     }
 
-    
     public function statusHistory()
     {
         return $this->hasMany(StagiaireStatusHistory::class, 'stagiaire_id');
     }
-
-   
-
 }
