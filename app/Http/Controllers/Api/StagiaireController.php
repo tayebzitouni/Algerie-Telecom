@@ -122,27 +122,21 @@ public function store(Request $request)
 
             foreach ($files as $file) {
                 if ($request->hasFile("$file.$index")) {
+
                     $uploaded = $request->file("$file.$index");
-                    $data[$file . '_path'] =
-                        $uploaded->store("documents/$file", 'public');
+
+                    // Store file
+                    $relativePath = $uploaded->store("documents/$file", 'public');
+
+                    // Convert to full URL
+                    $fullUrl = url('storage/' . $relativePath);
+
+                    // Save FULL URL directly to DB
+                    $data[$file . '_path'] = $fullUrl;
                 }
             }
 
             $stagiaire = Stagiaire::create($data);
-
-            // Add full URLs to return to frontend
-            $stagiaire->cv_url = $stagiaire->cv_path
-                ? url('storage/' . $stagiaire->cv_path)
-                : null;
-
-            $stagiaire->student_card_url = $stagiaire->student_card_path
-                ? url('storage/' . $stagiaire->student_card_path)
-                : null;
-
-            $stagiaire->cover_letter_url = $stagiaire->cover_letter_path
-                ? url('storage/' . $stagiaire->cover_letter_path)
-                : null;
-
             $createdStagiaires[] = $stagiaire;
         }
 
@@ -165,6 +159,7 @@ public function store(Request $request)
         ], 500);
     }
 }
+
 
 
 
