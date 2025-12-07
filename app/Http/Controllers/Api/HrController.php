@@ -16,6 +16,13 @@ class HrController extends Controller
         
     }
 
+    public function stagiere($id)
+    {
+         return Stagiaire::with(['ecole','group','statusHistory'])->findOrFail($id);
+        
+    }
+
+
     public function changeStatus(Request $request, $id)
     {
         $request->validate(['status'=>'required|in:pending,approved,refused']);

@@ -21,6 +21,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::middleware('role:hr')->prefix('hr')->group(function () {
 
         Route::get('stagiaires', [HrController::class, 'stagiaires']);
+      
+        Route::get('stagiaires/{id}', [HrController::class, 'stagiere']);
         Route::post('stagiaires', [ApiStagiaireController::class, 'store']);
 
         Route::post('stagiaires/{id}/status', [HrController::class, 'changeStatus']);
