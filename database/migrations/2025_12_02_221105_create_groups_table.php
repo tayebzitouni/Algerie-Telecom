@@ -31,6 +31,7 @@ $table->unsignedBigInteger('theme_id')->nullable();
      */
     public function down(): void
     {
-        Schema::dropIfExists('groups');
+       Schema::dropIfExists('groups_table'); // ✅
+
     }
 };
