@@ -12,7 +12,8 @@ class HrController extends Controller
 {
     public function stagiaires()
     {
-        return Stagiaire::with(['ecole','group','statusHistory'])->get();
+        // return Stagiaire::with(['ecole','group','statusHistory'])->get();
+         return Stagiaire::with(['ecole','statusHistory'])->get();
     }
 
     public function changeStatus(Request $request, $id)
