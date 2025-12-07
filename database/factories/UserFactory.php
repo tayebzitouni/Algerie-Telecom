@@ -7,13 +7,14 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 use App\Models\User;
 
-/**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\User>
- */
 class UserFactory extends Factory
 {
+    // Link this factory to the User model
     protected $model = User::class;
 
+    /**
+     * Define the model's default state.
+     */
     public function definition(): array
     {
         return [
@@ -21,13 +22,13 @@ class UserFactory extends Factory
             'email' => $this->faker->unique()->safeEmail(),
             'email_verified_at' => now(),
             'password' => Hash::make('password'), // default password
-            'role' => $this->faker->randomElement(['hr','emploi']),
+            'role' => $this->faker->randomElement(['hr', 'emploi']),
             'remember_token' => Str::random(10),
         ];
     }
 
     /**
-     * HR role
+     * HR role state.
      */
     public function hr(): static
     {
@@ -36,7 +37,9 @@ class UserFactory extends Factory
         ]);
     }
 
-    
+    /**
+     * Emploi role state.
+     */
     public function emploi(): static
     {
         return $this->state(fn(array $attributes) => [
