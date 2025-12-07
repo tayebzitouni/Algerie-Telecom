@@ -85,7 +85,8 @@ class StagiaireController extends Controller
 public function store(Request $request)
 {
     try {
-        // Validate basic fields
+
+        // Validate base fields
         $request->validate([
             'stagiaires' => 'required|array|min:1',
             'stagiaires.*.first_name' => 'required|string',
@@ -93,14 +94,14 @@ public function store(Request $request)
             'stagiaires.*.email' => 'nullable|email',
             'stagiaires.*.phone' => 'nullable|string',
             'stagiaires.*.city' => 'nullable|string',
+
             'ecole_id' => 'required|exists:ecoles,id',
             'emploi_id' => 'nullable|exists:emplois,id',
-            // files will be validated manually
         ]);
 
-        // Create the group
+        // Create group
         $group = Group::create([
-            'name' => 'Group for ' . now()->format('Y-m-d H:i:s'),
+            'name' => 'Group ' . now()->format('Y-m-d H:i:s'),
             'theme_id' => null,
             'ecole_id' => $request->ecole_id,
             'emploi_id' => $request->emploi_id ?? null,
@@ -109,6 +110,7 @@ public function store(Request $request)
         $createdStagiaires = [];
 
         foreach ($request->stagiaires as $index => $s) {
+
             $data = [
                 'first_name' => $s['first_name'],
                 'last_name' => $s['last_name'],
@@ -119,11 +121,14 @@ public function store(Request $request)
                 'status' => 'pending',
             ];
 
-            // Handle files arrays (cv, student_card, cover_letter)
+            // Handle files: cv, student_card, cover_letter
             $files = ['cv', 'student_card', 'cover_letter'];
+
             foreach ($files as $file) {
-                if ($request->hasFile($file) && isset($request->$file[$index])) {
-                    $data[$file . '_path'] = $request->file($file)[$index]->store("documents/$file", 'public');
+                if ($request->hasFile("$file.$index")) {
+                    $uploaded = $request->file("$file.$index");
+                    $data[$file . '_path'] =
+                        $uploaded->store("documents/$file", 'public');
                 }
             }
 
@@ -150,6 +155,7 @@ public function store(Request $request)
         ], 500);
     }
 }
+
 
 
     public function update(Request $request, $id)
