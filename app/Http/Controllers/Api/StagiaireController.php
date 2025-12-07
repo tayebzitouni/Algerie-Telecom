@@ -86,7 +86,6 @@ public function store(Request $request)
 {
     try {
 
-        // Validate base fields
         $request->validate([
             'stagiaires' => 'required|array|min:1',
             'stagiaires.*.first_name' => 'required|string',
@@ -94,12 +93,10 @@ public function store(Request $request)
             'stagiaires.*.email' => 'nullable|email',
             'stagiaires.*.phone' => 'nullable|string',
             'stagiaires.*.city' => 'nullable|string',
-
             'ecole_id' => 'required|exists:ecoles,id',
             'emploi_id' => 'nullable|exists:emplois,id',
         ]);
 
-        // Create group
         $group = Group::create([
             'name' => 'Group ' . now()->format('Y-m-d H:i:s'),
             'theme_id' => null,
@@ -121,7 +118,6 @@ public function store(Request $request)
                 'status' => 'pending',
             ];
 
-            // Handle files: cv, student_card, cover_letter
             $files = ['cv', 'student_card', 'cover_letter'];
 
             foreach ($files as $file) {
@@ -133,6 +129,20 @@ public function store(Request $request)
             }
 
             $stagiaire = Stagiaire::create($data);
+
+            // Add full URLs to return to frontend
+            $stagiaire->cv_url = $stagiaire->cv_path
+                ? url('storage/' . $stagiaire->cv_path)
+                : null;
+
+            $stagiaire->student_card_url = $stagiaire->student_card_path
+                ? url('storage/' . $stagiaire->student_card_path)
+                : null;
+
+            $stagiaire->cover_letter_url = $stagiaire->cover_letter_path
+                ? url('storage/' . $stagiaire->cover_letter_path)
+                : null;
+
             $createdStagiaires[] = $stagiaire;
         }
 
@@ -155,6 +165,7 @@ public function store(Request $request)
         ], 500);
     }
 }
+
 
 
 
