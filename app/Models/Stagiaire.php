@@ -46,6 +46,17 @@ class Stagiaire extends Model
         return $this->belongsTo(Group::class);
     }
 
+ public function ecole()
+    {
+        return $this->belongsTo(Ecole::class);
+    }
+
+
+    public function emploi()
+    {
+        return $this->belongsTo(Emploi::class);
+    }
+
     public function statusHistory()
     {
         return $this->hasMany(StagiaireStatusHistory::class, 'stagiaire_id');
