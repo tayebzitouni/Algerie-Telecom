@@ -16,10 +16,7 @@ use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Artisan;
 
 
-Route::get('/run-migrations', function() {
-    Artisan::call('migrate', ["--force" => true]);
-    return 'Migrations ran successfully!';
-});
+
 
 Route::post('register', [ApiAuthController::class, 'register']);
 Route::post('login', [ApiAuthController::class, 'login']);
