@@ -127,7 +127,7 @@ public function store(Request $request)
         foreach ($files as $file) {
             if ($request->hasFile("$file.$index")) {
                 $uploaded = $request->file("$file.$index");
-               $path = $uploaded->store("documents/$file", 's3');
+$path = $uploaded->store("documents/$file", 's3');
 $data[$file . '_path'] = $path;
 $data[$file . '_url'] = rtrim(env('AWS_URL'), '/') . '/' . ltrim($path, '/');
 
