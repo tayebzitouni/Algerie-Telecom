@@ -127,11 +127,10 @@ public function store(Request $request)
         foreach ($files as $file) {
             if ($request->hasFile("$file.$index")) {
                 $uploaded = $request->file("$file.$index");
-                $path = $uploaded->store("documents/$file", 's3');
-                $data[$file . '_path'] = $path;
+               $path = $uploaded->store("documents/$file", 's3');
+$data[$file . '_path'] = $path;
+$data[$file . '_url'] = rtrim(env('AWS_URL'), '/') . '/' . ltrim($path, '/');
 
-                // Build frontend-accessible URL
-                $data[$file . '_url'] = env('AWS_URL') . '/' . $path;
             }
         }
 
