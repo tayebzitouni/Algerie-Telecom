@@ -44,6 +44,21 @@ class AuthController extends Controller
     ]);
 }
 
+/**
+ * @OA\Get(
+ *     path="/api/test",
+ *     summary="Test endpoint",
+ *     tags={"Test"},
+ *     @OA\Response(
+ *         response=200,
+ *         description="Success"
+ *     )
+ * )
+ */
+public function test() {
+    return response()->json(['message' => 'OK']);
+}
+
 
     public function login(Request $request){
         $fields = $request->validate(['email'=>'required|string','password'=>'required|string']);

@@ -168,7 +168,6 @@ $path = $uploaded->store("documents/$file", [
     $content = Storage::disk('s3')->get($stagiaire->$column);
     $filename = basename($stagiaire->$column);
 
-    // Determine mime type from extension
     $extension = pathinfo($filename, PATHINFO_EXTENSION);
     $mimeTypes = [
         'pdf'  => 'application/pdf',

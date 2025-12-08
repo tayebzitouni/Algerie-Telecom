@@ -7,11 +7,15 @@ use App\Http\Controllers\Api\GroupController;
 use App\Http\Controllers\Api\EcoleController;
 use App\Http\Controllers\Api\StagiaireController as ApiStagiaireController;
 use App\Http\Controllers\Api\StagiaireController;
+use App\Http\Controllers\TestController;
 use Illuminate\Support\Facades\Route;
+
 //
 // Public routes
 Route::post('register', [ApiAuthController::class, 'register']);
 Route::post('login', [ApiAuthController::class, 'login']);
+Route::get('/test', [TestController::class, 'test']);
+
 Route::get('stagiaires/{id}/download/{file}', [StagiaireController::class, 'download']);
 
 // Protected routes

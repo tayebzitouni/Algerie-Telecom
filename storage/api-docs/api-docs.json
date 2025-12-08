@@ -1,0 +1,53 @@
+{
+    "openapi": "3.0.0",
+    "info": {
+        "title": "Stage Hub API",
+        "description": "API documentation for Stage Hub",
+        "contact": {
+            "email": "support@example.com"
+        },
+        "version": "1.0.0"
+    },
+    "servers": [
+        {
+            "url": "https://algerie-telecom-production-7045.up.railway.app/api",
+            "description": "API Server"
+        }
+    ],
+    "paths": {
+        "/api/test": {
+            "get": {
+                "tags": [
+                    "Test"
+                ],
+                "summary": "Test endpoint",
+                "operationId": "23c51201e748a7a199c8de3b5d30a077",
+                "responses": {
+                    "200": {
+                        "description": "Success"
+                    }
+                }
+            }
+        },
+        "/test": {
+            "get": {
+                "tags": [
+                    "Test"
+                ],
+                "summary": "Test endpoint",
+                "operationId": "8c679225a1e8478d550461677ce1a9cf",
+                "responses": {
+                    "200": {
+                        "description": "Success"
+                    }
+                }
+            }
+        }
+    },
+    "tags": [
+        {
+            "name": "Test",
+            "description": "Test"
+        }
+    ]
+}
