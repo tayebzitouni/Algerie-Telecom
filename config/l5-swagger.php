@@ -67,7 +67,8 @@ return [
             'open_api_spec_version' => env('L5_SWAGGER_OPEN_API_SPEC_VERSION', \L5Swagger\Generator::OPEN_API_DEFAULT_SPEC_VERSION),
         ],
 
-        'generate_always' => env('L5_SWAGGER_GENERATE_ALWAYS', false),
+        // Force generation on every request (needed for Railway production)
+        'generate_always' => env('L5_SWAGGER_GENERATE_ALWAYS', true),
         'generate_yaml_copy' => env('L5_SWAGGER_GENERATE_YAML_COPY', false),
         'proxy' => false,
         'additional_config_url' => null,

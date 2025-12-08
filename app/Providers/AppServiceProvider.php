@@ -4,6 +4,7 @@ namespace App\Providers;
 
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\URL;
+use Illuminate\Support\Facades\File;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -20,8 +21,11 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-         if(env('APP_ENV') === 'production'){
-        URL::forceScheme('https');
+         $path = storage_path('api-docs');
+
+    if (!File::exists($path)) {
+        File::makeDirectory($path, 0775, true); // recursive = true
     }
+    
     }
 }
