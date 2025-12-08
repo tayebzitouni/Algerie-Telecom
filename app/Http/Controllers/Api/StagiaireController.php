@@ -127,13 +127,13 @@ public function store(Request $request)
         foreach ($files as $file) {
             if ($request->hasFile("$file.$index")) {
                 $uploaded = $request->file("$file.$index");
-$path = $uploaded->store("documents/$file", [
-    'disk' => 's3',
-    'visibility' => 'public',
-]);$data[$file . '_path'] = $path;
-$data[$file . '_url'] = rtrim(env('AWS_URL'), '/') . '/' . ltrim($path, '/');
-
-
+                
+                // 1. Store the file and apply public visibility (ACL) on S3
+                $path = $uploaded->storePublicly("documents/$file", 's3');
+                $data[$file . '_path'] = $path;
+                
+                // 2. Construct the permanent public URL
+                $data[$file . '_url'] = rtrim(env('AWS_URL'), '/') . '/' . ltrim($path, '/');
             }
         }
 
