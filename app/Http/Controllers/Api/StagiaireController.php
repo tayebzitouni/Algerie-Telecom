@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\Storage;
 
 
 
+
 class StagiaireController extends Controller
 {
     public function index()
@@ -151,6 +152,42 @@ $path = $uploaded->store("documents/$file", [
 }
 
     
+
+
+    // Stream file to browser
+   public function download($id, $file)
+{
+    $stagiaire = Stagiaire::findOrFail($id);
+    $column = $file . '_path';
+
+    if (!isset($stagiaire->$column) || !Storage::disk('s3')->exists($stagiaire->$column)) {
+        return response()->json(['error' => 'File not found'], 404);
+    }
+
+    // Get file content
+    $content = Storage::disk('s3')->get($stagiaire->$column);
+    $filename = basename($stagiaire->$column);
+
+    // Determine mime type from extension
+    $extension = pathinfo($filename, PATHINFO_EXTENSION);
+    $mimeTypes = [
+        'pdf'  => 'application/pdf',
+        'doc'  => 'application/msword',
+        'docx' => 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+        'png'  => 'image/png',
+        'jpg'  => 'image/jpeg',
+        'jpeg' => 'image/jpeg',
+    ];
+    $mimeType = $mimeTypes[strtolower($extension)] ?? 'application/octet-stream';
+
+    return response($content)
+        ->header('Content-Type', $mimeType)
+        ->header('Content-Disposition', 'attachment; filename="' . $filename . '"');
+}
+
+
+
+
 
 
 

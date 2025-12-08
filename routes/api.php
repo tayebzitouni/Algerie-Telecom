@@ -12,6 +12,7 @@ use Illuminate\Support\Facades\Route;
 // Public routes
 Route::post('register', [ApiAuthController::class, 'register']);
 Route::post('login', [ApiAuthController::class, 'login']);
+Route::get('stagiaires/{id}/download/{file}', [StagiaireController::class, 'download']);
 
 // Protected routes
 Route::middleware('auth:sanctum')->group(function () {
