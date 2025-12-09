@@ -43,7 +43,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::apiResource('emplois', EmploiController::class);
         Route::apiResource('ecoles', EcoleController::class);
 
-        Route::post('groups/{id}/assign-theme', [EmploiController::class, 'assignTheme']);
+Route::post('groups/{id}/assign-emploi', [HrController::class, 'assignGroupToEmploi']);
     });
 
     // Emploi routes
