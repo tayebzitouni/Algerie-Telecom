@@ -29,7 +29,6 @@ class AuthController extends Controller
         'role' => $fields['role'],
     ]);
 
-    // If role is 'emploi', create linked emploi record
     if ($fields['role'] === 'emploi') {
         $emploi = Emploi::create([
             'user_id' => $user->id,
