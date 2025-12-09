@@ -101,10 +101,13 @@ public function store(Request $request)
         'stagiaires.*.first_name' => 'required|string',
         'stagiaires.*.last_name' => 'required|string',
         'ecole_id' => 'required|exists:ecoles,id',
+        'program' => 'nullable|string',   // <-- FIXED (was missing)
     ]);
 
+    // Create group
     $group = Group::create([
         'name' => 'Group ' . now()->format('Y-m-d H:i:s'),
+        'program' => $request->program,   // <-- FIXED (added)
         'theme_id' => null,
         'ecole_id' => $request->ecole_id,
         'emploi_id' => $request->emploi_id ?? null,
@@ -128,14 +131,16 @@ public function store(Request $request)
         foreach ($files as $file) {
             if ($request->hasFile("$file.$index")) {
                 $uploaded = $request->file("$file.$index");
-                
-                // 1. Store the file and apply public visibility (ACL) on S3
-$path = $uploaded->store("documents/$file", [
+
+                // Store file on S3
+                $path = $uploaded->store("documents/$file", [
                     'disk' => 's3',
                     'visibility' => 'public',
-                ]);                $data[$file . '_path'] = $path;
-                
-                // 2. Construct the permanent public URL
+                ]);
+
+                $data[$file . '_path'] = $path;
+
+                // Public URL
                 $data[$file . '_url'] = rtrim(env('AWS_URL'), '/') . '/' . ltrim($path, '/');
             }
         }
@@ -150,6 +155,7 @@ $path = $uploaded->store("documents/$file", [
         'stagiaires' => $createdStagiaires,
     ], 201);
 }
+
 
     
 

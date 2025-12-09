@@ -91,7 +91,7 @@ public function test() {
                 'email'      => $user->email,
                 'role'       => $user->role,
             ],
-            'emploi' => $emploi // null for HR user
+            'emploi' => $emploi 
         ]);
     }
 

@@ -46,5 +46,12 @@ class HrController extends Controller
         $hrs = User::where('role', 'hr')->get();
         return response()->json($hrs);
     }
+
+     public function HByid($id)
+    {
+        $hr = User::where('role', 'hr')->findOrFail($id);
+        return response()->json($hr);
+    }
+
    
 }

@@ -23,7 +23,7 @@ class EmploiController extends Controller
         return Emploi::with('user', 'department')->get();
     }
 
-    // Get one emploi by ID
+   
     public function show($id)
     {
         $emploi = Emploi::with('user', 'department')->findOrFail($id);

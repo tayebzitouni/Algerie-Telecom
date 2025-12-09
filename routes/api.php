@@ -33,7 +33,8 @@ Route::middleware('auth:sanctum')->group(function () {
 
         Route::post('stagiaires/{id}/status', [HrController::class, 'changeStatus']);
         Route::post('stagiaires/{id}/assign-emploi', [HrController::class, 'assignStagiaire']);
-        Route::get('users/hr', [HrController::class, 'allHR']);
+        Route::get('users/hrs', [HrController::class, 'allHR']);
+         Route::get('users/hr', [HrController::class, 'HByid']);
 
         Route::apiResource('emplois', EmploiController::class);
         Route::apiResource('ecoles', EcoleController::class);
