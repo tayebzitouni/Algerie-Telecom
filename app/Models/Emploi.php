@@ -21,4 +21,5 @@ class Emploi extends Model
     {
         return $this->hasMany(Stagiaire::class);
     }
+    
 }

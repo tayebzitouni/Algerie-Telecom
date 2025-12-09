@@ -8,6 +8,9 @@ use App\Models\GroupProgress;
 use App\Models\Stagiaire;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Auth;
+
+
 
 
 class EmploiController extends Controller
@@ -24,11 +27,28 @@ class EmploiController extends Controller
     }
 
    
-    public function show($id)
-    {
-        $emploi = Emploi::with('user', 'department')->findOrFail($id);
-        return response()->json($emploi);
+public function show($id)
+{
+    $emploi = Emploi::with('user', 'department')->findOrFail($id);
+
+    $authUser = Auth::user(); // use facade instead of helper
+
+    if (!$authUser) {
+        return response()->json(['message' => 'Unauthenticated'], 401);
     }
+
+    if (!$emploi->user) {
+        return response()->json(['message' => 'This emploi has no linked user'], 404);
+    }
+
+    if ($authUser->role === 'emploi' && $authUser->id !== $emploi->user_id) {
+        return response()->json(['message' => 'Forbidden'], 403);
+    }
+
+    return response()->json($emploi);
+}
+
+
 
 
     public function addNote(Request $request)

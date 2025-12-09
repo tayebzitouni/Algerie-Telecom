@@ -32,14 +32,41 @@ class HrController extends Controller
         return response()->json($stagiaire);
     }
 
- public function assignStagiaire(Request $request, $stagiaire_id)
-    {
-        $request->validate(['emploi_id'=>'required|exists:emplois,id']);
-        $stagiaire = Stagiaire::findOrFail($stagiaire_id);
+ public function assignGroupToEmploi(Request $request)
+{
+    $request->validate([
+        'group_id'  => 'required|exists:groups_table,id',
+        'emploi_id' => 'required|exists:emplois,id',
+        'status'    => 'sometimes|in:pending,approved,refused' // optional, default to approved
+    ]);
+
+    $group = \App\Models\Group::with('stagiaires')->findOrFail($request->group_id);
+
+    $status = $request->status ?? 'approved';
+    $updatedStagiaires = [];
+
+    foreach ($group->stagiaires as $stagiaire) {
         $stagiaire->emploi_id = $request->emploi_id;
-        $stagiaire->save();
-        return response()->json($stagiaire);
+        $stagiaire->status = $status;
+        $stagiaire->save(); // this will also trigger statusHistory automatically
+        $updatedStagiaires[] = $stagiaire;
     }
+
+    // Add a note in group_progress automatically
+    \App\Models\GroupProgress::create([
+        'group_id' => $group->id,
+        'note'     => $status === 'approved' ? 1 : ($status === 'refused' ? 0 : null), 
+        'date'     => now()->toDateString()
+    ]);
+
+    return response()->json([
+        'message' => 'Group assigned to emploi successfully',
+        'group' => $group,
+        'stagiaires' => $updatedStagiaires
+    ]);
+}
+
+
 
     public function allHR()
     {
