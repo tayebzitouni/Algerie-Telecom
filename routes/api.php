@@ -49,6 +49,8 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('groups/add-note', [EmploiController::class, 'addNote']);
     });
 
+Route::middleware('auth:sanctum')->get('emplois/{id}', [EmploiController::class, 'show']);
+
     // General routes
     Route::apiResource('stagiaires', ApiStagiaireController::class);
     Route::apiResource('groups', GroupController::class);
