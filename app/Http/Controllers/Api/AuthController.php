@@ -60,15 +60,41 @@ public function test() {
 }
 
 
-    public function login(Request $request){
-        $fields = $request->validate(['email'=>'required|string','password'=>'required|string']);
-        $user = User::where('email',$fields['email'])->first();
-        if(!$user || !Hash::check($fields['password'],$user->password)){
-            return response(['message'=>'Invalid credentials'],401);
+   public function login(Request $request)
+    {
+        $fields = $request->validate([
+            'email' => 'required|string',
+            'password' => 'required|string'
+        ]);
+
+        $user = User::where('email', $fields['email'])->first();
+
+        if (!$user || !Hash::check($fields['password'], $user->password)) {
+            return response([
+                'message' => 'Invalid credentials'
+            ], 401);
         }
+
+        // Create token
         $token = $user->createToken('apiToken')->plainTextToken;
-        return response()->json(['message'=>'Login successful','token'=>$token]);
+
+        // Load emploi relation if exists
+        $emploi = Emploi::where('user_id', $user->id)->first();
+
+        // Return token + user details
+        return response()->json([
+            'message' => 'Login successful',
+            'token' => $token,
+            'user' => [
+                'id'         => $user->id,
+                'name'       => $user->name,
+                'email'      => $user->email,
+                'role'       => $user->role,
+            ],
+            'emploi' => $emploi // null for HR user
+        ]);
     }
+
 
     public function logout(Request $request){
         $request->user()->tokens()->delete();
