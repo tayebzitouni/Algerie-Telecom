@@ -9,9 +9,13 @@ use App\Http\Controllers\Api\StagiaireController as ApiStagiaireController;
 use App\Http\Controllers\Api\StagiaireController;
 use App\Http\Controllers\TestController;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Mail;
 
-//
-// Public routes
+
+
+
+
+
 Route::post('login', [ApiAuthController::class, 'login']);
 Route::get('/test', [TestController::class, 'test']);
 
