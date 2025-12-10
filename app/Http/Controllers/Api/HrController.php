@@ -8,6 +8,7 @@ use App\Models\Stagiaire;
 use App\Models\Group;
 use App\Models\GroupProgress;
 use App\Models\User;
+use Illuminate\Support\Facades\Mail;
 
 class HrController extends Controller
 {
@@ -24,50 +25,77 @@ class HrController extends Controller
     }
 
 
-    public function changeStatus(Request $request, $id)
-    {
-        $request->validate(['status'=>'required|in:pending,approved,refused']);
-        $stagiaire = Stagiaire::findOrFail($id);
-        $stagiaire->status = $request->status;
-        $stagiaire->save();
-        return response()->json($stagiaire);
-    }
+    // public function changeStatus(Request $request, $id)
+    // {
+    //     $request->validate(['status'=>'required|in:pending,approved,refused']);
+    //     $stagiaire = Stagiaire::findOrFail($id);
+    //     $stagiaire->status = $request->status;
+    //     $stagiaire->save();
+    //     return response()->json($stagiaire);
+    // }
 
- public function assignGroupToEmploi(Request $request, $group_id)
+ public function changeStatus(Request $request, $group_id)
 {
-    // Validate that emploi_id exists
+    // Validate the request
     $request->validate([
-        'emploi_id' => 'required|exists:emplois,id',
-        'status' => 'required|in:pending,approved,refused'
+        'status' => 'required|in:pending,approved,refused',
+        'emploi_id' => 'required_if:status,approved|exists:emplois,id',
+        'note' => 'required_if:status,refused|string|max:500'
     ]);
 
-    // Find the group
+    // Get the group
     $group = Group::findOrFail($group_id);
 
-    // Assign the emploi to the group
-    $group->emploi_id = $request->emploi_id;
-    $group->save();
-
-    // Update all stagiaires in this group with new status
-    foreach ($group->stagiaires as $stagiaire) {
-        $stagiaire->status = $request->status;
-        $stagiaire->save(); // triggers status history automatically
+    /**
+     * ✔️ If APPROVED → assign emploi_id
+     */
+    if ($request->status === 'approved') {
+        $group->emploi_id = $request->emploi_id;
     }
 
-    // Optionally, create a note in group_progress
+    /**
+     * ✔️ If REFUSED → save note and send email
+     */
+    if ($request->status === 'refused') {
+        // Save refusal note
+        $group->refusal_note = $request->note;
+
+        // Send email to all stagiaires
+        foreach ($group->stagiaires as $stagiaire) {
+           Mail::to($stagiaire->email)->send(new \App\Mail\GroupRefusedMail(
+    $group,
+    $request->note,
+    $stagiaire
+));
+
+        }
+    }
+
+    $group->save();
+
+    /**
+     * ✔️ Update status of all stagiaires
+     */
+    foreach ($group->stagiaires as $stagiaire) {
+        $stagiaire->status = $request->status;
+        $stagiaire->save(); // triggers history if you use model events
+    }
+
+    /**
+     * ✔️ Create group progress record
+     */
     GroupProgress::create([
         'group_id' => $group->id,
-        'note' => $request->status === 'approved' ? 10 : 0, // example: approved = 10 points
+        'note' => $request->status === 'approved' ? 10 : 0,
         'date' => now(),
     ]);
 
     return response()->json([
+        'message' => "Status updated successfully",
         'group' => $group,
-        'stagiaires' => $group->stagiaires,
+        'stagiaires' => $group->stagiaires
     ]);
 }
-
-
 
     public function allHR()
     {

@@ -15,7 +15,9 @@ return new class extends Migration
         $table->id();
         $table->unsignedBigInteger('stagiaire_id');
         $table->enum('status', ['pending','approved','refused']);
+        
         $table->timestamp('changed_at')->useCurrent();
+
         $table->timestamps();
 
         $table->foreign('stagiaire_id')

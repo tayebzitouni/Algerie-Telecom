@@ -32,8 +32,9 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('stagiaires/{id}', [HrController::class, 'stagiere']);
         Route::post('stagiaires', [StagiaireController::class, 'store']);
 
-        Route::post('stagiaires/{id}/status', [HrController::class, 'changeStatus']);
-        Route::post('groups/assign-emploi', [HrController::class, 'assignGroupToEmploi']);
+      Route::post('groups/{group_id}/status', [HrController::class, 'changeStatus']);
+
+        
 
 
         Route::get('users/hrs', [HrController::class, 'allHR']);
