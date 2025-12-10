@@ -9,6 +9,7 @@ use App\Models\Group;
 use App\Models\GroupProgress;
 use App\Models\User;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Log;
 
 class HrController extends Controller
 {
@@ -61,11 +62,12 @@ class HrController extends Controller
 
         // Send email to all stagiaires
         foreach ($group->stagiaires as $stagiaire) {
-           Mail::to($stagiaire->email)->send(new \App\Mail\GroupRefusedMail(
-    $group,
-    $request->note,
-    $stagiaire
-));
+          try {
+    Mail::to($stagiaire->email)->send(new \App\Mail\GroupRefusedMail($group, $request->note, $stagiaire));
+} catch (\Exception $e) {
+    Log::error('Email sending failed: '.$e->getMessage());
+}
+
 
         }
     }
