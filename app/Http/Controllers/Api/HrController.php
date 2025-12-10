@@ -58,7 +58,6 @@ class HrController extends Controller
      */
     if ($request->status === 'refused') {
         // Save refusal note
-        $group->refusal_note = $request->note;
 
         // Send email to all stagiaires
         foreach ($group->stagiaires as $stagiaire) {
