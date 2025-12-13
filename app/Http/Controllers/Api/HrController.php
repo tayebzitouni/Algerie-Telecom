@@ -8,8 +8,11 @@ use App\Models\Stagiaire;
 use App\Models\Group;
 use App\Models\GroupProgress;
 use App\Models\User;
-use Illuminate\Support\Facades\Mail;
+
 use Illuminate\Support\Facades\Log;
+
+use App\Mail\GroupRefusedMail;
+use Illuminate\Support\Facades\Mail;
 
 class HrController extends Controller
 {
