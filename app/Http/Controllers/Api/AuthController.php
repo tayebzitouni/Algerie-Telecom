@@ -58,6 +58,10 @@ public function test() {
     return response()->json(['message' => 'OK']);
 }
 
+public function test2() {
+    return response()->json(['message' => 'OK']);
+}
+
 
    public function login(Request $request)
     {
