@@ -5,6 +5,7 @@ namespace Database\Seeders;
 use Illuminate\Database\Seeder;
 use App\Models\User;
 use App\Models\Emploi;
+use Illuminate\Support\Facades\Hash;
 
 class UserSeeder extends Seeder
 { /**
@@ -14,6 +15,13 @@ class UserSeeder extends Seeder
     public function run(): void
     {
                ini_set('max_execution_time', 300); // 5 minutes
+
+    $manualUser = User::create([
+            'name' => 'Admin User',
+            'email' => 'admin@example.com',
+            'password' => Hash::make('password123'), // your known password
+            'role' => 'hr', // assuming you have a role column
+        ]);
 
         // Create 2 HR users
         User::factory()->count(2)->hr()->create();
