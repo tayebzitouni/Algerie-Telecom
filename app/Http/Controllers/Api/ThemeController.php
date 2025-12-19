@@ -7,6 +7,8 @@ use App\Models\Theme;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
+
+
 class ThemeController extends Controller
 {
     // GET all themes of authenticated employee
@@ -23,10 +25,9 @@ class ThemeController extends Controller
         return response()->json($theme);
     }
 
-    // CREATE a theme for authenticated employee
-    public function store(Request $request)
+public function store(Request $request)
     {
-        $data = $request->validate([
+        $request->validate([
             'name'                => 'required|string|max:255',
             'category'            => 'required|string|max:255',
             'duration'            => 'required|integer|min:1',
@@ -38,22 +39,43 @@ class ThemeController extends Controller
             'documentation'       => 'nullable|file|mimes:pdf,doc,docx|max:10240',
         ]);
 
+        $emploi = Auth::user()->emploi;
+
+        if (!$emploi) {
+            return response()->json(['error' => 'No emploi found for this user'], 400);
+        }
+
+        $data = $request->only([
+            'name', 'category', 'duration', 'description', 
+            'requirements', 'learning_objectives', 
+            'max_capacity', 'difficulty_level'
+        ]);
+
         if ($request->hasFile('documentation')) {
             $data['documentation_path'] = $request->file('documentation')
                                                  ->store('themes', 'public');
         }
 
-        $data['employee_id'] = Auth::id();
+        // Set employee_id from the emploi
+        $data['employee_id'] = $emploi->id;
 
         $theme = Theme::create($data);
 
         return response()->json($theme, 201);
     }
 
-    // UPDATE a theme (only if belongs to employee)
+    // UPDATE a theme
     public function update(Request $request, $id)
     {
-        $theme = Theme::where('id', $id)->where('employee_id', Auth::id())->firstOrFail();
+        $emploi = Auth::user()->emploi;
+
+        if (!$emploi) {
+            return response()->json(['error' => 'No emploi found for this user'], 400);
+        }
+
+        $theme = Theme::where('id', $id)
+                      ->where('employee_id', $emploi->id)
+                      ->firstOrFail();
 
         $data = $request->validate([
             'name'                => 'required|string|max:255',
@@ -76,6 +98,7 @@ class ThemeController extends Controller
 
         return response()->json($theme);
     }
+
 
     // DELETE a theme (only if belongs to employee)
     public function destroy($id)
