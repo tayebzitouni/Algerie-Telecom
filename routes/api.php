@@ -10,6 +10,8 @@ use App\Http\Controllers\Api\StagiaireController;
 use App\Http\Controllers\TestController;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Mail;
+use App\Mail\TestMail;
+use App\Http\Controllers\Api\ThemeController;
 
 
 
@@ -17,7 +19,6 @@ use Illuminate\Support\Facades\Mail;
 
 
 Route::post('login', [ApiAuthController::class, 'login']);
-Route::get('/test', [TestController::class, 'test']);
 
 Route::get('stagiaires/{id}/download/{file}', [StagiaireController::class, 'download']);
 
@@ -55,6 +56,9 @@ Route::post('groups/{id}/assign-emploi', [HrController::class, 'assignGroupToEmp
     Route::middleware('role:emploi')->prefix('emploi')->group(function () {
         Route::get('my-stagiaires', [EmploiController::class, 'myStagiaires']);
         Route::post('groups/add-note', [EmploiController::class, 'addNote']);
+        Route::middleware('auth:sanctum')->group(function () {
+    Route::apiResource('themes', ThemeController::class);
+});
     });
 
 Route::middleware('auth:sanctum')->get('emplois/{id}', [EmploiController::class, 'show']);
