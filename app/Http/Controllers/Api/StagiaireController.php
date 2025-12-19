@@ -6,8 +6,8 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Stagiaire;
 use App\Models\Group;
-use Illuminate\Support\Facades\Storage;
 
+use Illuminate\Support\Facades\Storage; // Correctly imported here
 
 
 
@@ -97,17 +97,18 @@ class StagiaireController extends Controller
 public function store(Request $request)
 {
     $request->validate([
+        'name' => 'required|string|max:255', // Now accepting the group name
         'stagiaires' => 'required|array|min:1',
         'stagiaires.*.first_name' => 'required|string',
         'stagiaires.*.last_name' => 'required|string',
         'ecole_id' => 'required|exists:ecoles,id',
-        'program' => 'nullable|string',   // <-- FIXED (was missing)
+        'program' => 'nullable|string',
     ]);
 
-    // Create group
+    // 1. Create group using the 'name' from parameters
     $group = Group::create([
-        'name' => 'Group ' . now()->format('Y-m-d H:i:s'),
-        'program' => $request->program,   // <-- FIXED (added)
+        'name' => $request->name, 
+        'program' => $request->program,
         'theme_id' => null,
         'ecole_id' => $request->ecole_id,
         'emploi_id' => $request->emploi_id ?? null,
@@ -129,6 +130,7 @@ public function store(Request $request)
         $files = ['cv', 'student_card', 'cover_letter'];
 
         foreach ($files as $file) {
+            // Check if file exists in the request (e.g., cv.0, cv.1)
             if ($request->hasFile("$file.$index")) {
                 $uploaded = $request->file("$file.$index");
 
@@ -138,10 +140,11 @@ public function store(Request $request)
                     'visibility' => 'public',
                 ]);
 
+                // Store the raw path in the database
                 $data[$file . '_path'] = $path;
-
-                // Public URL
-                $data[$file . '_url'] = rtrim(env('AWS_URL'), '/') . '/' . ltrim($path, '/');
+                
+               $baseUrl = rtrim(env('AWS_URL'), '/');
+$data[$file . '_url'] = $baseUrl . '/' . ltrim($path, '/');
             }
         }
 
@@ -151,48 +154,11 @@ public function store(Request $request)
 
     return response()->json([
         'success' => true,
+        'message' => 'Group and students created successfully',
         'group' => $group,
         'stagiaires' => $createdStagiaires,
     ], 201);
 }
-
-
-    
-
-
-    // Stream file to browser
-   public function download($id, $file)
-{
-    $stagiaire = Stagiaire::findOrFail($id);
-    $column = $file . '_path';
-
-    if (!isset($stagiaire->$column) || !Storage::disk('s3')->exists($stagiaire->$column)) {
-        return response()->json(['error' => 'File not found'], 404);
-    }
-
-    // Get file content
-    $content = Storage::disk('s3')->get($stagiaire->$column);
-    $filename = basename($stagiaire->$column);
-
-    $extension = pathinfo($filename, PATHINFO_EXTENSION);
-    $mimeTypes = [
-        'pdf'  => 'application/pdf',
-        'doc'  => 'application/msword',
-        'docx' => 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-        'png'  => 'image/png',
-        'jpg'  => 'image/jpeg',
-        'jpeg' => 'image/jpeg',
-    ];
-    $mimeType = $mimeTypes[strtolower($extension)] ?? 'application/octet-stream';
-
-    return response($content)
-        ->header('Content-Type', $mimeType)
-        ->header('Content-Disposition', 'attachment; filename="' . $filename . '"');
-}
-
-
-
-
 
 
 

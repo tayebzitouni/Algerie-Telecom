@@ -29,14 +29,7 @@ class HrController extends Controller
     }
 
 
-    // public function changeStatus(Request $request, $id)
-    // {
-    //     $request->validate(['status'=>'required|in:pending,approved,refused']);
-    //     $stagiaire = Stagiaire::findOrFail($id);
-    //     $stagiaire->status = $request->status;
-    //     $stagiaire->save();
-    //     return response()->json($stagiaire);
-    // }
+   
 
  public function changeStatus(Request $request, $group_id)
 {
