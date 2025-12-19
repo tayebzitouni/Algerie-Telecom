@@ -55,6 +55,7 @@ Route::post('groups/{id}/assign-emploi', [HrController::class, 'assignGroupToEmp
     // Emploi routes
     Route::middleware('role:emploi')->prefix('emploi')->group(function () {
         Route::get('my-stagiaires', [EmploiController::class, 'myStagiaires']);
+         Route::post('groups/{group_id}/assign-theme', [EmploiController::class, 'assignTheme']);
         Route::post('groups/add-note', [EmploiController::class, 'addNote']);
         Route::middleware('auth:sanctum')->group(function () {
     Route::apiResource('themes', ThemeController::class);

@@ -27,7 +27,7 @@ public function index()
 }
 
 
-   // GET a specific theme by id (only if belongs to employee)
+ 
 public function show($id)
 {
     $user = Auth::user();       // get authenticated user
