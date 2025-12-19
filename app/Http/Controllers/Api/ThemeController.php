@@ -11,19 +11,42 @@ use Illuminate\Support\Facades\Auth;
 
 class ThemeController extends Controller
 {
-    // GET all themes of authenticated employee
-    public function index()
-    {
-        $themes = Theme::where('employee_id', Auth::id())->get();
-        return response()->json($themes);
+// GET all themes of authenticated employee
+public function index()
+{
+    $user = Auth::user(); // get the authenticated user
+    $emploi = $user->emploi; // get the related emploi
+
+    if (!$emploi) {
+        return response()->json(['error' => 'No emploi found for this user'], 400);
     }
 
-    // GET a specific theme by id (only if belongs to employee)
-    public function show($id)
-    {
-        $theme = Theme::where('id', $id)->where('employee_id', Auth::id())->firstOrFail();
-        return response()->json($theme);
+    $themes = Theme::where('employee_id', $emploi->id)->get();
+
+    return response()->json($themes);
+}
+
+
+   // GET a specific theme by id (only if belongs to employee)
+public function show($id)
+{
+    $user = Auth::user();       // get authenticated user
+    $emploi = $user->emploi;    // get the related emploi
+
+    if (!$emploi) {
+        return response()->json(['error' => 'No emploi found for this user'], 400);
     }
+
+    $theme = Theme::where('id', $id)
+                  ->where('employee_id', $emploi->id)
+                  ->firstOrFail();
+
+    return response()->json($theme);
+}
+
+
+
+
 
 public function store(Request $request)
     {

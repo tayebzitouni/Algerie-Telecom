@@ -8,6 +8,7 @@ use App\Models\Stagiaire;
 use App\Models\Group;
 use App\Models\GroupProgress;
 use App\Models\User;
+use App\Models\Theme;
 
 use Illuminate\Support\Facades\Log;
 
@@ -107,4 +108,17 @@ class HrController extends Controller
     }
 
    
+
+
+
+public function getByEmployee($employeeId)
+{
+    $themes = Theme::where('employee_id', $employeeId)->get();
+
+    if ($themes->isEmpty()) {
+        return response()->json(['message' => 'No themes found for this employee'], 404);
+    }
+
+    return response()->json($themes);
+}
 }
