@@ -123,7 +123,6 @@ public function store(Request $request)
     }
 
 
-    // DELETE a theme (only if belongs to employee)
     public function destroy($id)
     {
         $theme = Theme::where('id', $id)->where('employee_id', Auth::id())->firstOrFail();
