@@ -9,10 +9,27 @@ class Theme extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['name'];
+    protected $fillable = [
+        'name',
+        'category',
+        'duration',
+        'description',
+        'requirements',
+        'learning_objectives',
+        'max_capacity',
+        'difficulty_level',
+        'documentation_path',
+        'employee_id', // added
+    ];
 
+    // Relations
     public function groups()
     {
         return $this->hasMany(Group::class);
+    }
+
+    public function employee()
+    {
+        return $this->belongsTo(Emploi::class, 'employee_id');
     }
 }

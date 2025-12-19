@@ -22,4 +22,8 @@ class Emploi extends Model
         return $this->hasMany(Stagiaire::class);
     }
     
+    public function themes()
+    {
+        return $this->hasMany(Theme::class, 'employee_id');
+    }
 }

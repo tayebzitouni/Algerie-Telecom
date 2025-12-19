@@ -12,10 +12,36 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('themes', function (Blueprint $table) {
-        $table->id();
-        $table->string('name');
-        $table->timestamps();
-    });
+            $table->id();
+
+            // Basic information
+            $table->string('name'); // Subject Title
+            $table->string('category');
+            $table->integer('duration'); // weeks
+
+            // Description
+            $table->text('description');
+
+            // Requirements & skills
+            $table->text('requirements');
+
+            // Learning objectives
+            $table->text('learning_objectives');
+
+            // Additional details
+            $table->integer('max_capacity')->default(1);
+            $table->enum('difficulty_level', ['beginner', 'intermediate', 'advanced']);
+
+            // Optional documentation
+            $table->string('documentation_path')->nullable();
+
+            // Foreign key to employee (emploi)
+            $table->foreignId('employee_id')->constrained('emplois')->onDelete('cascade');
+
+            $table->timestamps(); 
+        });
+        
+
     }
 
     /**

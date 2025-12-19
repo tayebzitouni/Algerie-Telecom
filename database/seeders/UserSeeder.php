@@ -7,12 +7,14 @@ use App\Models\User;
 use App\Models\Emploi;
 
 class UserSeeder extends Seeder
-{
-    /**
+{ /**
+     
      * Run the database seeds.
      */
     public function run(): void
     {
+               ini_set('max_execution_time', 300); // 5 minutes
+
         // Create 2 HR users
         User::factory()->count(2)->hr()->create();
 
