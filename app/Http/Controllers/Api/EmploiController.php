@@ -15,11 +15,23 @@ use Illuminate\Support\Facades\Auth;
 
 class EmploiController extends Controller
 {
-    public function myStagiaires(Request $request)
-    {
-        $emploi_id = $request->user()->id; // or map user to emploi_id
-        return Stagiaire::where('emploi_id',$emploi_id)->with('group')->get();
+   public function myStagiaires(Request $request)
+{
+    $user = Auth::user();
+
+    // Get emploi linked to authenticated user
+    $emploi = $user->emploi;
+
+    if (!$emploi) {
+        return response()->json([
+            'message' => 'No emploi found for this user'
+        ], 403);
     }
+
+    return Stagiaire::where('emploi_id', $emploi->id)
+        ->with('group')
+        ->get();
+}
     
   public function index()
     {
