@@ -15,7 +15,7 @@ use Illuminate\Support\Facades\Auth;
 
 class EmploiController extends Controller
 {
-   public function myStagiaires(Request $request)
+   public function myStagiaires()
 {
     $user = Auth::user();
 
@@ -28,9 +28,14 @@ class EmploiController extends Controller
         ], 403);
     }
 
-    return Stagiaire::where('emploi_id', $emploi->id)
-        ->with('group')
-        ->get();
+    // Get all stagiaires whose group belongs to this emploi
+    $stagiaires = Stagiaire::whereHas('group', function ($query) use ($emploi) {
+        $query->where('emploi_id', $emploi->id);
+    })
+    ->with('group')
+    ->get();
+
+    return response()->json($stagiaires);
 }
     
   public function index()
