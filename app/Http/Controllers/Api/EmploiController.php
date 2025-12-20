@@ -4,11 +4,12 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Emploi;
+use App\Models\Group;
 use App\Models\GroupProgress;
 use App\Models\Stagiaire;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
 
 
 
@@ -18,8 +19,6 @@ class EmploiController extends Controller
    public function myStagiaires()
 {
     $user = Auth::user();
-
-    // Get emploi linked to authenticated user
     $emploi = $user->emploi;
 
     if (!$emploi) {
@@ -28,16 +27,25 @@ class EmploiController extends Controller
         ], 403);
     }
 
-    // Get all stagiaires whose group belongs to this emploi
-    $stagiaires = Stagiaire::whereHas('group', function ($query) use ($emploi) {
-        $query->where('emploi_id', $emploi->id);
-    })
-    ->with('group')
-    ->get();
+    // Get groups of this emploi with their stagiaires
+    $groups = Group::where('emploi_id', $emploi->id)
+        ->with('stagiaires')
+        ->get();
 
-    return response()->json($stagiaires);
-}
-    
+    // Format response
+    $response = $groups->map(function ($group) {
+        return [
+            'group' => [
+                'id' => $group->id,
+                'name' => $group->name,
+                'created_at' => $group->created_at,
+            ],
+            'stagiaires' => $group->stagiaires
+        ];
+    });
+
+    return response()->json($response);
+} 
   public function index()
     {
         return Emploi::with('user', 'department')->get();
