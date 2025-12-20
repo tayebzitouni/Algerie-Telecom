@@ -124,10 +124,22 @@ public function store(Request $request)
 
 
     public function destroy($id)
-    {
-        $theme = Theme::where('id', $id)->where('employee_id', Auth::id())->firstOrFail();
-        $theme->delete();
+{
+    $user = Auth::user();
 
-        return response()->json(['message' => 'Theme deleted']);
+    // Get emploi linked to this user
+    $emploi = $user->emploi;
+
+    if (!$emploi) {
+        return response()->json(['message' => 'No emploi found for this user'], 403);
     }
+
+    $theme = Theme::where('id', $id)
+                  ->where('employee_id', $emploi->id)
+                  ->firstOrFail();
+
+    $theme->delete();
+
+    return response()->json(['message' => 'Theme deleted']);
+}
 }
