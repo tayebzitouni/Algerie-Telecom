@@ -16,7 +16,7 @@ use Illuminate\Support\Facades\Hash;
 
 class EmploiController extends Controller
 {
-   public function myStagiaires()
+  public function myStagiaires()
 {
     $user = Auth::user();
     $emploi = $user->emploi;
@@ -27,25 +27,38 @@ class EmploiController extends Controller
         ], 403);
     }
 
-    // Get groups of this emploi with their stagiaires
     $groups = Group::where('emploi_id', $emploi->id)
-        ->with('stagiaires')
+        ->with([
+            'stagiaires',
+            'theme',
+            'ecole',
+            'emploi.user'
+        ])
         ->get();
 
-    // Format response
     $response = $groups->map(function ($group) {
         return [
             'group' => [
-                'id' => $group->id,
-                'name' => $group->name,
+                'id'         => $group->id,
+                'name'       => $group->name,
+                'program'    => $group->program,
                 'created_at' => $group->created_at,
+            ],
+            'theme' => $group->theme,
+            'ecole' => $group->ecole,
+            'employee' => [
+                'emploi_id' => $group->emploi->id,
+                'user'      => $group->emploi->user,
             ],
             'stagiaires' => $group->stagiaires
         ];
     });
 
-    return response()->json($response);
-} 
+    return response()->json([
+        'emploi_id' => $emploi->id,
+        'data' => $response
+    ]);
+}
   public function index()
     {
         return Emploi::with('user', 'department')->get();
