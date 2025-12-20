@@ -7,6 +7,7 @@ use App\Models\Emploi;
 use App\Models\Group;
 use App\Models\GroupProgress;
 use App\Models\Stagiaire;
+use App\Models\Theme;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
