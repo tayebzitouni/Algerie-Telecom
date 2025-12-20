@@ -59,9 +59,14 @@ Route::post('groups/{id}/assign-emploi', [HrController::class, 'assignGroupToEmp
         Route::get('my-stagiaires', [EmploiController::class, 'myStagiaires']);
          Route::post('groups/{group_id}/assign-theme', [EmploiController::class, 'assignTheme']);
         Route::post('groups/add-note', [EmploiController::class, 'addNote']);
+        Route::get('/groups/{group}/available-themes', [EmploiController::class , 'availableThemes']);
+Route::post('/groups/{group}/assign-theme', [EmploiController::class, 'assignTheme']);
+
         Route::middleware('auth:sanctum')->group(function () {
     Route::apiResource('themes', ThemeController::class);
 });
+
+
     });
 
 Route::middleware('auth:sanctum')->get('emplois/{id}', [EmploiController::class, 'show']);

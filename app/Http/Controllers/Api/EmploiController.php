@@ -109,13 +109,12 @@ public function assignTheme(Request $request, $group_id)
         'theme_id' => 'required|exists:themes,id',
     ]);
 
-    // Get the group we want to assign the theme to
     $group = Group::findOrFail($group_id);
 
-    // Check if another group in the SAME ecole already uses this theme
+    // Check if theme already used in same school
     $alreadyUsed = Group::where('ecole_id', $group->ecole_id)
         ->where('theme_id', $request->theme_id)
-        ->where('id', '!=', $group->id) // exclude current group
+        ->where('id', '!=', $group->id)
         ->exists();
 
     if ($alreadyUsed) {
@@ -124,15 +123,36 @@ public function assignTheme(Request $request, $group_id)
         ], 422);
     }
 
-    // Assign theme
-    $group->theme_id = $request->theme_id;
-    $group->save();
+    $group->update([
+        'theme_id' => $request->theme_id
+    ]);
 
     return response()->json([
         'message' => 'Theme assigned successfully',
         'group' => $group
     ]);
 }
+
+
+public function availableThemes($group_id)
+{
+    $group = Group::findOrFail($group_id);
+
+    // Get theme IDs already used in the same school (except this group)
+    $usedThemeIds = Group::where('ecole_id', $group->ecole_id)
+        ->whereNotNull('theme_id')
+        ->where('id', '!=', $group->id)
+        ->pluck('theme_id');
+
+    // Get available themes
+    $themes = Theme::whereNotIn('id', $usedThemeIds)->get();
+
+    return response()->json([
+        'group_id' => $group->id,
+        'available_themes' => $themes
+    ]);
+}
+
 
 
    
