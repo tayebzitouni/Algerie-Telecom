@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Api\AuthController as ApiAuthController;
+use App\Http\Controllers\Api\DepartmentController;
 use App\Http\Controllers\Api\HrController;
 use App\Http\Controllers\Api\EmploiController;
 use App\Http\Controllers\Api\GroupController;
@@ -45,6 +46,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('users/hrs', [HrController::class, 'allHR']);
         Route::get('users/hr/{id}', [HrController::class, 'HByid']);
 
+        Route::apiResource('departments', DepartmentController::class);
 
         Route::apiResource('emplois', EmploiController::class);
         Route::apiResource('ecoles', EcoleController::class);
