@@ -109,21 +109,29 @@ public function assignTheme(Request $request, $group_id)
         'theme_id' => 'required|exists:themes,id',
     ]);
 
-    $group = \App\Models\Group::findOrFail($group_id);
+    // Get the group we want to assign the theme to
+    $group = Group::findOrFail($group_id);
 
-    $themeCount = \App\Models\Group::where('ecole_id', $group->ecole_id)
+    // Check if another group in the SAME ecole already uses this theme
+    $alreadyUsed = Group::where('ecole_id', $group->ecole_id)
         ->where('theme_id', $request->theme_id)
-        ->count();
-    if ($themeCount >= 2) {
+        ->where('id', '!=', $group->id) // exclude current group
+        ->exists();
+
+    if ($alreadyUsed) {
         return response()->json([
-            'message' => 'This theme is already used by 2 groups in the school'
-        ], 400);
+            'message' => 'This theme is already taken by another group in this school'
+        ], 422);
     }
 
+    // Assign theme
     $group->theme_id = $request->theme_id;
     $group->save();
 
-    return response()->json($group);
+    return response()->json([
+        'message' => 'Theme assigned successfully',
+        'group' => $group
+    ]);
 }
 
 
