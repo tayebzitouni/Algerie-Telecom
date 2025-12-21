@@ -24,6 +24,10 @@ class GroupProgress extends Model
         return $this->belongsTo(Group::class);
     }
 
+    protected $casts = [
+        'date' => 'date:Y-m-d'
+    ];
+
    
     //
 }

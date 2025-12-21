@@ -11,6 +11,7 @@ use App\Models\Theme;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Carbon\Carbon;
 
 
 
@@ -102,6 +103,40 @@ public function show($id)
         $progress = GroupProgress::create($request->all());
         return response()->json($progress);
     }
+
+
+public function updateProgress(Request $request, int $id)
+{
+    $progress = GroupProgress::findOrFail($id);
+
+    $data = $request->validate([
+        'note' => 'sometimes|string',
+        'date' => 'sometimes|date'
+    ]);
+
+    if (isset($data['date'])) {
+        $data['date'] = Carbon::parse($data['date'])->format('Y-m-d');
+    }
+
+    $progress->update($data);
+
+    return response()->json([
+        'message' => 'Progress mis à jour',
+        'data' => $progress
+    ]);
+}
+
+
+public function deleteProgress(int $id)
+{
+    $progress = GroupProgress::findOrFail($id);
+    $progress->delete();
+
+    return response()->json([
+        'message' => 'Progress supprimé avec succès'
+    ]);
+}
+
 
 
     public function getGroupProgress(int $groupId)
