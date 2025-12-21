@@ -54,12 +54,11 @@ Route::middleware('auth:sanctum')->group(function () {
 Route::post('groups/{id}/assign-emploi', [HrController::class, 'assignGroupToEmploi']);
     });
 
-    // Emploi routes
+    
     Route::middleware('role:emploi')->prefix('emploi')->group(function () {
         Route::get('my-stagiaires', [EmploiController::class, 'myStagiaires']);
-        Route::get('/groups/{group}/progress', [EmploiController::class, 'getGroupProgress']);
-Route::put('group-progress/{id}', [EmploiController::class, 'updateProgress']); // UPDATE
-Route::delete('group-progress/{id}', [EmploiController::class, 'deleteProgress']); // DELETE
+         Route::put('group-progress/{id}', [EmploiController::class, 'updateProgress']); // UPDATE
+Route::delete('group-progress/{id}', [EmploiController::class, 'deleteProgress']);
          Route::post('groups/{group_id}/assign-theme', [EmploiController::class, 'assignTheme']);
         Route::post('groups/add-note', [EmploiController::class, 'addNote']);
         Route::get('/groups/{group}/available-themes', [EmploiController::class , 'availableThemes']);
@@ -75,6 +74,7 @@ Route::post('/groups/{group}/assign-theme', [EmploiController::class, 'assignThe
 Route::middleware('auth:sanctum')->get('emplois/{id}', [EmploiController::class, 'show']);
 
     // General routes
+    Route::get('/groups/{group}/progress', [EmploiController::class, 'getGroupProgress']);
     Route::apiResource('stagiaires', ApiStagiaireController::class);
     Route::apiResource('groups', GroupController::class);
 });
