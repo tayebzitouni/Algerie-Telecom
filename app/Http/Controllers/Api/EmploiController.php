@@ -104,6 +104,26 @@ public function show($id)
     }
 
 
+    public function getGroupProgress(int $groupId)
+{
+    $progress = GroupProgress::where('group_id', $groupId)
+        ->orderBy('date', 'desc')
+        ->get();
+
+    if ($progress->isEmpty()) {
+        return response()->json([
+            'message' => 'Aucun progrès trouvé pour ce groupe',
+            'data' => []
+        ], 200);
+    }
+
+    return response()->json([
+        'group_id' => $groupId,
+        'total' => $progress->count(),
+        'data' => $progress
+    ], 200);
+}
+
 public function assignTheme(Request $request, $group_id)
 {
     $request->validate([
