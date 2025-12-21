@@ -93,7 +93,7 @@ public function show($id)
     public function addNote(Request $request)
     {
         $request->validate([
-            'group_id'=>'required|exists:groups,id',
+            'group_id'=>'required|exists:groups_table,id',
             
             'note'=>'required|string',
             'date'=>'required|date'
