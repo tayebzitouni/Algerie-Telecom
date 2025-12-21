@@ -95,7 +95,7 @@ public function show($id)
         $request->validate([
             'group_id'=>'required|exists:groups,id',
             
-            'note'=>'required|integer',
+            'note'=>'required|string',
             'date'=>'required|date'
         ]);
 
