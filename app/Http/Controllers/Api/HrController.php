@@ -84,7 +84,7 @@ class HrController extends Controller
      */
     GroupProgress::create([
         'group_id' => $group->id,
-        'note' => $request->status === 'approved' ? 10 : 0,
+        'note' => $request->status ,
         'date' => now(),
     ]);
 
